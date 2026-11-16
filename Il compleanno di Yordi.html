@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Il compleanno di Yordi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#120508;--wine:#7d1829;--wine2:#5c0f1f;--deep:#3a0914;--gold:#d9b98a;--cream:#f6e9e0;--line:rgba(217,185,138,.4);--serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;--sans:'Jost',system-ui,-apple-system,'Segoe UI',sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--cream);font-family:var(--sans);overflow:hidden;-webkit-tap-highlight-color:transparent}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.stage{position:fixed;inset:0;display:grid;place-items:center;z-index:2}
+.drop{transform:translateY(-110vh);transition:transform 2.2s cubic-bezier(.25,.8,.35,1.06)}
+.drop.in{transform:none}
+.env{position:relative;--w:min(86vw,360px);width:var(--w);height:calc(var(--w)*.68);background:linear-gradient(160deg,var(--wine),var(--deep));border-radius:6px;box-shadow:0 30px 60px rgba(0,0,0,.65);perspective:900px;transition:width .9s cubic-bezier(.7,0,.2,1),height .9s cubic-bezier(.7,0,.2,1),border-radius .9s}
+.env.full{width:100vw;height:100vh;height:100dvh;border-radius:0}
+.pocket{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,#6b1224,#47091a);clip-path:polygon(0 0,50% 58%,100% 0,100% 100%,0 100%);transition:opacity .4s}
+.flap{position:absolute;left:0;top:0;width:100%;height:58%;background:linear-gradient(180deg,#8a1a2d,var(--wine2));clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;z-index:2;transition:transform .7s ease,opacity .3s .4s}
+.env.open .flap{transform:rotateX(180deg);opacity:0}
+.seal{position:absolute;left:50%;top:58%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;z-index:3;display:grid;place-items:center;font:italic 600 1.6rem var(--serif);color:rgba(255,215,215,.8);background:radial-gradient(circle at 35% 30%,#d4384f,#8a1428 55%,#5a0a18);box-shadow:0 4px 10px rgba(0,0,0,.5),inset 0 0 0 5px rgba(255,200,200,.14);transition:opacity .3s}
+.env.open .seal,.env.full .pocket{opacity:0}
+.hint{position:fixed;left:0;right:0;bottom:12%;text-align:center;z-index:3;font-size:.8rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);opacity:0;transition:opacity .6s;pointer-events:none}
+.hint.on{opacity:1;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45}}
+.inside{position:absolute;inset:0;overflow-y:auto;padding:calc(clamp(24px,7vh,70px) + env(safe-area-inset-top,0px)) 22px calc(28px + env(safe-area-inset-bottom,0px));opacity:0;pointer-events:none;transition:opacity .7s;background:radial-gradient(ellipse at 50% 0,#8a1a2d 0,transparent 65%),linear-gradient(180deg,#5c0f1f,#2c0710)}
+.env.show .inside{opacity:1;pointer-events:auto}
+.wrap{margin:0 auto;width:100%;max-width:440px;text-align:center}
+h1,h2{font-family:var(--serif);font-style:italic;font-weight:600;margin:0}
+h1{font-size:clamp(2.4rem,11vw,3.4rem);line-height:1.05}
+h2{font-size:1.7rem}
+.sub{color:var(--gold);margin:12px 0 26px;font-weight:300}
+.item{margin-bottom:12px;text-align:left;scroll-margin:16px}
+.opt,.btn,form button{font:inherit;cursor:pointer;color:var(--cream);text-decoration:none}
+.opt{display:block;position:relative;width:100%;text-align:left;padding:16px 50px 16px 18px;border:1px solid var(--line);border-radius:4px;background:rgba(255,255,255,.05);transition:background .3s,border-color .3s}
+.opt b{display:block;font:italic 600 1.45rem var(--serif)}
+.opt span{font-size:.85rem;color:var(--gold);font-weight:300}
+.opt::after{content:'+';position:absolute;right:18px;top:50%;transform:translateY(-50%);font:500 1.6rem var(--serif);color:var(--gold)}
+.item.open .opt{background:rgba(255,255,255,.1);border-color:var(--gold)}
+.item.open .opt::after{content:'\2013'}
+.panel{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .5s ease,visibility 0s .5s}
+.item.open .panel{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .5s ease}
+.pin{min-height:0;overflow:hidden}
+.pin>div{padding:18px 4px 8px;text-align:center}
+.date{color:var(--gold);margin:0 0 18px;font-weight:300}
+.cd{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.cd div{border:1px solid var(--line);border-radius:4px;padding:12px 2px;background:rgba(0,0,0,.2);text-align:center}
+.cd b{display:block;font:500 2.2rem/1 var(--serif);font-variant-numeric:tabular-nums}
+.cd small{font-size:.7rem;color:var(--gold)}
+.card{border:1px solid var(--line);border-radius:4px;padding:18px;background:rgba(0,0,0,.2)}
+.card p{margin:8px 0 0;line-height:1.55;font-weight:300}
+.addr{font:italic 600 1.7rem/1.25 var(--serif);margin:0 0 16px}
+.btn,form button{display:block;width:100%;padding:15px;border:0;border-radius:4px;background:var(--cream);color:var(--wine2);font-weight:500;text-align:center;margin-top:10px}
+.btn.ghost{background:transparent;color:var(--cream);border:1px solid var(--line)}
+form{text-align:left}
+label{display:block;font-size:.85rem;color:var(--gold);margin:14px 0 6px}
+input,textarea{width:100%;font:inherit;font-size:16px;color:var(--cream);background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:4px;padding:12px}
+textarea{min-height:84px;resize:vertical}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ok{margin:16px 0 0;font-size:.9rem;line-height:1.5;color:var(--gold)}
+@media (prefers-reduced-motion:reduce){.drop,.env,.flap,.inside,.panel{transition-duration:.01s}.hint.on{animation:none}}
+</style>
+</head>
+<body>
+<canvas id="c" aria-hidden="true"></canvas>
+<div class="stage">
+  <div class="drop" id="drop">
+    <div class="env" id="env">
+      <div class="pocket"></div><div class="flap"></div><div class="seal">Y</div>
+      <div class="inside" id="inside"><div class="wrap">
+        <h1>Il compleanno di Yordi</h1>
+        <p class="sub">Ci farebbe piacere averti con noi.</p>
+
+        <div class="item">
+          <button class="opt" aria-expanded="false" aria-controls="p1"><b>Dettagli della festa</b><span>Quando inizia e come vestirsi</span></button>
+          <div class="panel" id="p1"><div class="pin"><div>
+            <p class="date">Sabato 12 dicembre 2026, ore 13:00</p>
+            <div class="cd" id="cd">
+              <div><b id="d">0</b><small>giorni</small></div><div><b id="h">0</b><small>ore</small></div><div><b id="m">0</b><small>minuti</small></div><div><b id="s">0</b><small>secondi</small></div>
+            </div>
+            <div class="card"><h2>Dress code: rosso</h2><p>Indossa qualcosa di rosso: un abito, una camicia o anche solo un accessorio.</p></div>
+          </div></div></div>
+        </div>
+
+        <div class="item">
+          <button class="opt" aria-expanded="false" aria-controls="p2"><b>Dove</b><span>Come raggiungerci</span></button>
+          <div class="panel" id="p2"><div class="pin"><div>
+            <p class="addr">Via Salvatore Di Giacomo 4<br>Padova</p>
+            <a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query=Via+Salvatore+Di+Giacomo+4+Padova">Apri in Google Maps</a>
+            <a class="btn ghost" target="_blank" rel="noopener" href="https://maps.apple.com/?q=Via+Salvatore+Di+Giacomo+4+Padova">Apri in Apple Maps</a>
+          </div></div></div>
+        </div>
+
+        <div class="item">
+          <button class="opt" aria-expanded="false" aria-controls="p3"><b>Regali</b><span>La lista dei desideri</span></button>
+          <div class="panel" id="p3"><div class="pin"><div>
+            <p class="date">Se vuoi farle un regalo, trovi tutto qui.</p>
+            <a class="btn" target="_blank" rel="noopener" href="https://www.amazon.it/registries/gl/guest-view/3RZUHPQ2EQBTG?ref_=cm_sw_r_apin_ggr-subnav-share_SCXFT4E9TEGTD4NQ5BYY&amp;language=en-US">Lista dei desideri</a>
+          </div></div></div>
+        </div>
+
+        <div class="item">
+          <button class="opt" aria-expanded="false" aria-controls="p4"><b>RSVP</b><span>Conferma la tua presenza</span></button>
+          <div class="panel" id="p4"><div class="pin"><div>
+            <form id="f">
+              <label for="n">Il tuo nome</label>
+              <input id="n" required autocomplete="name">
+              <label for="g">Quante persone siete (incluso te)?</label>
+              <input id="g" type="number" min="1" max="20" value="1" required inputmode="numeric">
+              <label for="t">Note per noi (facoltativo)</label>
+              <textarea id="t"></textarea>
+              <button type="submit">Conferma presenza</button>
+            </form>
+            <p class="ok" id="ok" hidden>Si è aperta la tua app di posta: premi Invia per completare la conferma. Se non si apre, scrivi a yordisegala96@gmail.com.</p>
+            <a class="btn ghost" target="_blank" rel="noopener" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Compleanno+di+Yordi&amp;dates=20261212T120000Z/20261212T160000Z&amp;details=Dress+code%3A+rosso&amp;location=Via+Salvatore+Di+Giacomo+4%2C+Padova">Aggiungi al calendario</a>
+          </div></div></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+<div class="hint" id="hint">Tocca per aprire</div>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var cv=$('c'),ctx=cv.getContext('2d'),W,H,raf,stop=false;
+function size(){var r=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*r;cv.height=H*r;ctx.setTransform(r,0,0,r,0,0)}
+size();addEventListener('resize',size);
+
+/* red tulips with stems, lying sideways */
+function makeTulip(P){
+  var S=1.5,c=document.createElement('canvas');c.width=240*S;c.height=120*S;
+  var g=c.getContext('2d');g.scale(S,S);g.translate(175,60);g.rotate(Math.PI/2);
+  g.lineCap='round';g.lineJoin='round';
+  function leaf(x,y,a,len,wid){g.save();g.translate(x,y);g.rotate(a);
+    var lg=g.createLinearGradient(0,0,0,-len);lg.addColorStop(0,'#15522b');lg.addColorStop(1,'#4aa874');
+    g.fillStyle=lg;g.beginPath();g.moveTo(0,0);g.bezierCurveTo(wid*1.2,-len*.25,wid*.8,-len*.72,0,-len);g.bezierCurveTo(-wid*.8,-len*.72,-wid*1.2,-len*.25,0,0);g.fill();
+    g.strokeStyle='rgba(8,45,22,.7)';g.lineWidth=.9;g.stroke();
+    g.strokeStyle='rgba(210,245,210,.3)';g.lineWidth=.8;g.beginPath();g.moveTo(0,-2);g.lineTo(0,-len*.9);g.stroke();g.restore()}
+  /* stem (unchanged) */
+  g.beginPath();g.moveTo(0,40);g.bezierCurveTo(4,70,-3,110,6,162);
+  g.strokeStyle='#215a33';g.lineWidth=5.5;g.stroke();
+  g.strokeStyle='#3d9159';g.lineWidth=2.2;g.save();g.translate(-1,0);g.stroke();g.restore();
+  /* long tulip leaves */
+  leaf(2,92,.55,52,9);leaf(1,112,-.4,74,11);leaf(2.5,134,.35,66,10);
+  /* bloom */
+  g.save();g.scale(1.35,1.35);
+  function pet(top,bot,d){var pg=g.createLinearGradient(0,-36,0,26);pg.addColorStop(0,top);pg.addColorStop(1,bot);
+    g.fillStyle=pg;g.beginPath();d();g.fill();g.strokeStyle='rgba(45,0,12,.5)';g.lineWidth=.9;g.stroke()}
+  pet(P.mid,P.dark,function(){g.moveTo(0,25);g.bezierCurveTo(-22,18,-26,-10,-12,-35);g.bezierCurveTo(-5,-25,2,-10,2,6);g.closePath()});
+  pet(P.mid,P.dark,function(){g.moveTo(0,25);g.bezierCurveTo(22,18,26,-10,12,-35);g.bezierCurveTo(5,-25,-2,-10,-2,6);g.closePath()});
+  pet(P.mid,P.dark,function(){g.moveTo(0,27);g.bezierCurveTo(-25,22,-29,-6,-19,-32);g.bezierCurveTo(-10,-22,-1,-10,1,4);g.closePath()});
+  pet(P.mid,P.dark,function(){g.moveTo(0,27);g.bezierCurveTo(25,22,29,-6,19,-32);g.bezierCurveTo(10,-22,1,-10,-1,4);g.closePath()});
+  pet(P.light,P.mid,function(){g.moveTo(0,27);g.bezierCurveTo(-19,19,-20,-14,0,-38);g.bezierCurveTo(20,-14,19,19,0,27)});
+  g.strokeStyle=P.rim;g.globalAlpha=.4;g.lineWidth=2.2;g.beginPath();g.moveTo(-6,20);g.quadraticCurveTo(-10,-2,-4,-27);g.stroke();
+  g.globalAlpha=1;g.restore();
+  return c;
+}
+var sprites=[{dark:'#6b0b1c',mid:'#b0152e',light:'#d92a46',rim:'#ff7a8c'},{dark:'#5a0a19',mid:'#97122a',light:'#c01f3a',rim:'#ee6478'},{dark:'#7a1020',mid:'#c4182f',light:'#e8384f',rim:'#ff9aa6'}].map(makeTulip);
+
+/* gentle, endless fall: about half the envelope's speed, swaying sideways */
+var N=Math.max(26,Math.min(60,Math.round(W/9))),roses=[],last=performance.now(),el=0;
+function spawn(q,first){
+  q.w=120+Math.random()*70;q.s=sprites[Math.floor(Math.random()*sprites.length)];
+  q.x=Math.random()*W;
+  q.y=-q.w-Math.random()*(first?H*.6:H*.2);
+  q.v=H*(.18+Math.random()*.14);
+  q.dx=(Math.random()-.5)*28;
+  q.a=25+Math.random()*50;q.f=.4+Math.random()*.6;q.p=Math.random()*6.28;
+  q.r=Math.random()*6.28;q.rv=(Math.random()-.5)*.9;q.o=.8+Math.random()*.2;
+  return q;
+}
+for(var k=0;k<N;k++)roses.push(spawn({},true));
+function frame(now){
+  var dt=Math.min((now-last)/1000,.05);last=now;el+=dt;
+  ctx.clearRect(0,0,W,H);
+  roses.forEach(function(q){
+    q.y+=q.v*dt;q.x+=q.dx*dt;q.r+=q.rv*dt;
+    if(q.y>H+q.w)spawn(q,false);
+    ctx.save();ctx.globalAlpha=q.o;
+    ctx.translate(q.x+Math.sin(el*q.f+q.p)*q.a,q.y);
+    ctx.rotate(q.r+Math.sin(el*q.f*1.3+q.p)*.35);
+    ctx.drawImage(q.s,-q.w/2,-q.w/4,q.w,q.w/2);ctx.restore();
+  });
+  if(!stop)raf=requestAnimationFrame(frame);
+}
+if(!reduce)raf=requestAnimationFrame(frame);
+
+/* envelope drops at 1.7s while roses keep falling; tap to open */
+var ready=false,opened=false,env=$('env');
+setTimeout(function(){
+  $('drop').classList.add('in');
+  setTimeout(function(){ready=true;$('hint').classList.add('on')},reduce?100:2300);
+},reduce?200:1700);
+function open(){
+  if(!ready||opened)return;opened=true;$('hint').classList.remove('on');$('hint').style.opacity=0;
+  env.classList.add('open');
+  setTimeout(function(){env.classList.add('full')},750);
+  setTimeout(function(){env.classList.add('show');stop=true;cancelAnimationFrame(raf)},1500);
+}
+addEventListener('pointerdown',open);
+addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')open()});
+
+/* options open in place; opening one closes the other */
+document.querySelectorAll('.opt').forEach(function(b){
+  b.addEventListener('click',function(){
+    var it=b.parentNode,was=it.classList.contains('open');
+    document.querySelectorAll('.item.open').forEach(function(o){o.classList.remove('open');o.firstElementChild.setAttribute('aria-expanded','false')});
+    if(!was){
+      it.classList.add('open');b.setAttribute('aria-expanded','true');
+      setTimeout(function(){it.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'})},520);
+    }
+  });
+});
+
+/* countdown to 12 Dec 2026, 13:00 CET (= 12:00 UTC) */
+var T=Date.UTC(2026,11,12,12,0,0);
+function tick(){
+  var x=T-Date.now();
+  if(x<=0){$('cd').innerHTML='<p style="grid-column:1/-1;margin:0">La festa è iniziata!</p>';clearInterval(iv);return}
+  var s=Math.floor(x/1000);
+  $('d').textContent=Math.floor(s/86400);$('h').textContent=Math.floor(s%86400/3600);
+  $('m').textContent=Math.floor(s%3600/60);$('s').textContent=s%60;
+}
+var iv=setInterval(tick,1000);tick();
+
+/* RSVP by email */
+$('f').addEventListener('submit',function(e){
+  e.preventDefault();
+  var n=$('n').value.trim(),body='Nome: '+n+'\nPersone (incluso me): '+$('g').value+'\nNote: '+($('t').value.trim()||'-');
+  var a=document.createElement('a');
+  a.href='mailto:yordisegala96@gmail.com?subject='+encodeURIComponent('RSVP compleanno di Yordi - '+n)+'&body='+encodeURIComponent(body);
+  document.body.appendChild(a);a.click();a.remove();
+  $('ok').hidden=false;
+});
+})();
+</script>
+</body>
+</html>
